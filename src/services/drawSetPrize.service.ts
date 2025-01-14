@@ -1,9 +1,14 @@
 import { CreateDrawSetPrizeInput } from '@/schemas/drawSetPrize.schema'
 import { BaseService } from './base.service'
-import type { DrawSetPrize, Rarity } from '@prisma/client'
+import type { DrawSet, DrawSetPrize, Prize, Rarity } from '@prisma/client'
+
+type DrawSetPrizeWithRelations = DrawSetPrize & {
+  Prize: Prize
+  DrawSet: DrawSet
+}
 
 export class DrawSetPrizeService extends BaseService {
-  async create(data: CreateDrawSetPrizeInput): Promise<DrawSetPrize> {
+  async create(data: CreateDrawSetPrizeInput): Promise<DrawSetPrizeWithRelations> {
     const drawSet = await this.prisma.drawSet.findUnique({
       where: { id: data.drawSetId }
     })
@@ -45,7 +50,7 @@ export class DrawSetPrizeService extends BaseService {
   async batchCreate(
     drawSetId: string, 
     prizes: Array<Omit<CreateDrawSetPrizeInput, 'drawSetId'>>
-  ): Promise<DrawSetPrize[]> {
+  ): Promise<DrawSetPrizeWithRelations[]> {
     const drawSet = await this.prisma.drawSet.findUnique({
       where: { id: drawSetId }
     })
@@ -110,7 +115,7 @@ export class DrawSetPrizeService extends BaseService {
     )
   }
 
-  async findByDrawSetId(drawSetId: string): Promise<DrawSetPrize[]> {
+  async findByDrawSetId(drawSetId: string): Promise<DrawSetPrizeWithRelations[]> {
     return this.prisma.drawSetPrize.findMany({
       where: { drawSetId },
       include: {
@@ -120,7 +125,17 @@ export class DrawSetPrizeService extends BaseService {
     })
   }
 
-  async updateRarity(id: string, rarity: Rarity): Promise<DrawSetPrize> {
+  async findByPrizeId(prizeId: string): Promise<DrawSetPrizeWithRelations[]> {
+    return this.prisma.drawSetPrize.findMany({
+      where: { prizeId },
+      include: {
+        Prize: true,
+        DrawSet: true
+      }
+    })
+  }
+
+  async updateRarity(id: string, rarity: Rarity): Promise<DrawSetPrizeWithRelations> {
     const existing = await this.prisma.drawSetPrize.findUnique({
       where: { id },
       include: { DrawSet: true }

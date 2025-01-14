@@ -2,8 +2,20 @@ import { Context } from 'hono'
 import { BaseController } from './base.controller'
 import { createPrizeSchema } from '@/schemas/prize.schema'
 import { AdminAuth } from '@/decorators/adminAuth.decorator'
+import { PrizeService } from '@/services/prize.service'
+import { DrawSetService } from '@/services/drawSet.service'
+import { DrawSetPrizeService } from '@/services/drawSetPrize.service'
 
 export class PrizeController extends BaseController {
+  constructor(
+    private readonly prizeService: PrizeService = new PrizeService(),
+    private readonly drawSetService: DrawSetService = new DrawSetService(),
+    private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService()
+  ) {
+    super(prizeService)
+    super(drawSetService)
+    super(drawSetPrizeService)
+  }
   // 1) 建立獎品 (純 Prize)
   @AdminAuth()
   async create(c: Context) {
@@ -11,13 +23,11 @@ export class PrizeController extends BaseController {
       const body = await c.req.json()
       const data = createPrizeSchema.parse(body)
 
-      const prize = await this.prisma.prize.create({
-        data: {
+      const prize = await this.prizeService.create({
           name: data.name,
           description: data.description,
           image: data.image,
           isActive: data.isActive ?? true,
-        }
       })
       return this.success(c, prize)
     } catch (error) {
@@ -28,18 +38,12 @@ export class PrizeController extends BaseController {
    async getByDrawSet(c: Context) {
     try {
       const { drawSetId } = c.req.param()
-      const drawSet = await this.prisma.drawSet.findUnique({ where: { id: drawSetId } })
+      const drawSet = await this.drawSetService.findById(drawSetId)
       if (!drawSet) {
         return this.error(c, '找不到抽獎套組', 404)
       }
 
-      const pivots = await this.prisma.drawSetPrize.findMany({
-        where: { drawSetId },
-        include: {
-          Prize: true,
-          DrawSet: true
-        }
-      })
+      const pivots = await this.drawSetPrizeService.findByDrawSetId(drawSetId)
       return this.success(c, pivots)
     } catch (error) {
       return this.error(c, '取得獎品列表失敗', 500)
@@ -53,35 +57,19 @@ export class PrizeController extends BaseController {
       const { id } = c.req.param()
 
       // 查找目標中繼
-      const pivot = await this.prisma.drawSetPrize.findUnique({
-        where: { id },
-        include: {
-          Prize: { include: { DrawRecords: true } },
-          DrawSet: true
-        }
-      })
-      if (!pivot) {
+      const pivots = await this.drawSetPrizeService.findByPrizeId(id)
+      if (!pivots.length) {
         return this.error(c, '找不到中繼關係', 404)
       }
-      // 檢查套組是否開始
-      if (pivot.DrawSet.startTime <= new Date()) {
-        return this.error(c, '抽獎套組已開始，無法刪除此獎品', 400)
-      }
-      // 檢查是否已有抽獎紀錄
-      if (pivot.Prize.DrawRecords.length > 0) {
-        return this.error(c, '已有人抽中此獎品，無法刪除', 400)
+      // 檢查所有相關套組是否已開始
+      for (const pivot of pivots) {
+        if (pivot.DrawSet.startTime <= new Date()) {
+          return this.error(c, '抽獎套組已開始，無法刪除此獎品', 400)
+        }
       }
 
-      // 1) 刪除中繼表記錄
-      await this.prisma.drawSetPrize.delete({ where: { id } })
-
-      // 2) 確認是否仍有其他套組引用此 Prize，若無則刪除
-      const stillUsed = await this.prisma.drawSetPrize.count({
-        where: { prizeId: pivot.prizeId }
-      })
-      if (stillUsed === 0) {
-        await this.prisma.prize.delete({ where: { id: pivot.prizeId } })
-      }
+      // 刪除所有中繼表記錄
+      await Promise.all(pivots.map(pivot => this.drawSetPrizeService.remove(pivot.id)))
 
       return this.success(c, { message: '獎品刪除成功' })
     } catch (error) {
@@ -93,12 +81,7 @@ export class PrizeController extends BaseController {
   async getById(c: Context) {
     try {
       const { id } = c.req.param()
-      const prize = await this.prisma.prize.findUnique({
-        where: { id },
-        include: {
-          DrawSetPrizes: true
-        }
-      })
+      const prize = await this.prizeService.findById(id)
       if (!prize) {
         return this.error(c, '找不到對應的獎品', 404)
       }
@@ -116,14 +99,11 @@ export class PrizeController extends BaseController {
       const body = await c.req.json()
       const data = createPrizeSchema.parse(body)
 
-      const prize = await this.prisma.prize.update({
-        where: { id },
-        data: {
+      const prize = await this.prizeService.update(id ,{
           name: data.name,
           description: data.description,
           image: data.image,
           isActive: data.isActive ?? true,
-        }
       })
       return this.success(c, prize)
     } catch (error) {
