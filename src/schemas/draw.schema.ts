@@ -3,6 +3,7 @@ import { z } from 'zod'
 // 執行抽獎的輸入驗證
 export const executeDrawSchema = z.object({
   drawSetId: z.string().uuid('無效的抽獎套組 ID'),
+  number: z.number().int().positive('編號必須是正整數').optional(),
 })
 
 // 查詢抽獎歷史的參數驗證

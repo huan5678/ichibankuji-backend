@@ -1,9 +1,11 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
 import { createPrizeSchema } from '@/schemas/prize.schema'
+import { AdminAuth } from '@/decorators/adminAuth.decorator'
 
 export class PrizeController extends BaseController {
   // 1) 建立獎品 (純 Prize)
+  @AdminAuth()
   async create(c: Context) {
     try {
       const body = await c.req.json()
@@ -45,6 +47,7 @@ export class PrizeController extends BaseController {
   }
 
   // ★ 刪除獎品：先刪除中繼，再考慮是否要刪除 Prize
+  @AdminAuth()
   async delete(c: Context) {
     try {
       const { id } = c.req.param()
@@ -106,6 +109,7 @@ export class PrizeController extends BaseController {
   }
 
   // ★ 更新獎品資訊（只更新 Prize 本體）
+  @AdminAuth()
   async update(c: Context) {
     try {
       const { id } = c.req.param()
