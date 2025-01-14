@@ -1,13 +1,12 @@
 {
-  "name": "backend",
+  "name": "ichiban-kuji-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "build:prod": "prisma migrate deploy && prisma generate && tsc -p .",
+    "start": "node -r tsconfig-paths/register -r module-alias/register ./dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },
@@ -21,7 +20,9 @@
     "@supabase/supabase-js": "^2.47.12",
     "bcrypt": "^5.1.1",
     "hono": "^4.6.16",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -31,5 +32,8 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "zod": "^3.24.1"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   }
 }
