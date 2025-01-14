@@ -86,12 +86,16 @@ model DrawSetPrize {
   drawSetId String   @db.Uuid
   prizeId   String   @db.Uuid
   rarity    Rarity   // 於此儲存每個獎品在不同套組的稀有度
+  number     Int      // 獎品編號
+  quantity   Int      // 數量
+  remaining  Int      // 剩餘數量
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   DrawSet DrawSet @relation(fields: [drawSetId], references: [id])
   Prize   Prize   @relation(fields: [prizeId], references: [id])
 
+  @@unique([drawSetId, number])  // 每個獎品編號在同一個套組中唯一
   @@index([drawSetId])
   @@index([prizeId])
 
