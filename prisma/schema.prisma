@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String       @id @default(uuid()) @db.Uuid  // 使用者 ID
+  name        String       @db.VarChar(50)// 使用者名稱
+  email       String       @unique @db.VarChar(250)  // 電子郵件，用於登入
+  password    String       // 加密後的密碼
+  picture     String?      // 頭像圖片網址
+  role        Role       @default(USER)  // 使用者角色：admin/user
+  credits     Int          @default(0)  // 使用者點數
+  isActive    Boolean      @default(true)  // 帳號狀態
+  lastLoginAt DateTime?    // 最後登入時間
+  createdAt   DateTime     @default(now())  // 建立時間
+  updatedAt   DateTime     @updatedAt  // 更新時間
+  DrawRecords DrawRecord[] // 關聯到抽獎紀錄
+
+  @@map("users")
+}
+
+model DrawSet {
+  id            String           @id @default(uuid()) @db.Uuid  // 套組 ID
+  name          String           @db.VarChar(50) // 套組名稱
+  description   String?          @db.VarChar(250) // 套組描述
+  image         String?          // 套組圖片網址
+  startTime     DateTime         // 開始時間
+  endTime       DateTime         // 結束時間
+  enabled       Boolean          @default(true)  // 套組狀態
+  maxDraws      Int              // 最大抽獎次數
+  price         Int              // 抽獎價格（點數）
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  DrawSetPrizes DrawSetPrize[]
+  DrawRecords   DrawRecord[]
+  DrawSetLocks  DrawSet_Lock[]
+
+  @@map("draw_sets")
+}
+
+model Prize {
+  id            String           @id @default(uuid()) @db.Uuid  // 獎品 ID
+  name          String          // 獎品名稱
+  description   String?         // 獎品描述
+  image         String?         // 獎品圖片網址
+  isActive      Boolean         @default(true)  // 獎品狀態
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  DrawSetPrizes DrawSetPrize[] // 關聯到抽獎套組獎品
+  DrawRecords   DrawRecord[]    // 關聯到抽獎紀錄
+
+  @@map("prizes")
+}
+
+model DrawRecord {
+  id        String    @id @default(uuid()) @db.Uuid // 抽獎紀錄 ID
+  userId    String    @db.Uuid // 抽獎使用者 ID
+  drawSetId String    @db.Uuid // 抽獎套組 ID
+  prizeId   String    @db.Uuid // 獲得的獎品 ID
+  drawNumber Int      // 抽獎序號
+  status    String    // 抽獎狀態：pending/success/failed
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  DrawSet   DrawSet   @relation(fields: [drawSetId], references: [id])
+  Prize     Prize     @relation(fields: [prizeId], references: [id])
+
+  @@index([userId])  // 加速使用者抽獎紀錄查詢
+  @@index([drawSetId])  // 加速套組抽獎紀錄查詢
+  @@index([prizeId])  // 加速獎品抽獎紀錄查詢
+
+  @@map("draw_records")
+}
+
+// ★ 新增中繼表：在圖中，每個 (DrawSet, Prize) 關係都可以擁有不一樣的稀有度。
+model DrawSetPrize {
+  // 注意：以下可自行調整欄位設計
+  id        String   @id @default(uuid()) @db.Uuid
+  drawSetId String   @db.Uuid
+  prizeId   String   @db.Uuid
+  rarity    Rarity   // 於此儲存每個獎品在不同套組的稀有度
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  DrawSet DrawSet @relation(fields: [drawSetId], references: [id])
+  Prize   Prize   @relation(fields: [prizeId], references: [id])
+
+  @@index([drawSetId])
+  @@index([prizeId])
+
+  @@map("draw_set_prizes")
+}
+
+model DrawSet_Lock {
+  id        String    @id @default(uuid()) @db.Uuid // 鎖定 ID
+  drawSetId String    @db.Uuid // 被鎖定的套組 ID
+  userId    String    @db.Uuid // 鎖定者的使用者 ID
+  lockedAt  DateTime  @default(now())  // 鎖定時間
+  expiresAt DateTime  // 鎖定過期時間
+  DrawSet   DrawSet   @relation(fields: [drawSetId], references: [id])
+
+  @@index([drawSetId])  // 加速鎖定狀態查詢
+  @@index([userId])  // 加速鎖定者查詢
+
+  @@map("draw_set_locks")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Rarity {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  I
+  J
+  LAST
+}

@@ -1,0 +1,22 @@
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Mac device temp files
+*.DS_Store
+._*
+
+# Local env files
+.env
+.env.*
+!.env.example
