@@ -1,7 +1,6 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
-import type { Prize } from '@prisma/client'
-import { createPrizeSchema, type CreatePrizeInput, type UpdatePrizeInput } from '@/schemas/prize.schema'
+import { createPrizeSchema } from '@/schemas/prize.schema'
 
 export class PrizeController extends BaseController {
   // 1) 建立獎品 (純 Prize)
