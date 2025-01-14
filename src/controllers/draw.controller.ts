@@ -2,6 +2,7 @@ import { Context } from 'hono'
 import { BaseController } from './base.controller'
 
 export class DrawController extends BaseController {
+
   async execute(c: Context) {
     try {
       const { drawSetId } = await c.req.json()
@@ -53,6 +54,24 @@ export class DrawController extends BaseController {
       
       const draws = await this.prisma.drawRecord.findMany({
         where: { userId: jwt.id },
+        include: {
+          DrawSet: true,
+          Prize: true
+        }
+      })
+
+      return this.success(c, draws)
+    } catch (error) {
+      return this.error(c, '取得歷史紀錄失敗')
+    }
+  }
+
+  async getDrawSetHistory(c: Context) {
+    try {
+      const { drawSetId } = c.req.param()
+      
+      const draws = await this.prisma.drawRecord.findMany({
+        where: { drawSetId },
         include: {
           DrawSet: true,
           Prize: true
