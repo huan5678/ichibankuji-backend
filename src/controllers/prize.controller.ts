@@ -5,7 +5,7 @@ import { createPrizeSchema, type CreatePrizeInput, type UpdatePrizeInput } from 
 
 export class PrizeController extends BaseController {
   // 1) 建立獎品 (純 Prize)
-  async createPrize(c: Context) {
+  async create(c: Context) {
     try {
       const body = await c.req.json()
       const data = createPrizeSchema.parse(body)
@@ -103,6 +103,28 @@ export class PrizeController extends BaseController {
       return this.success(c, prize)
     } catch (error) {
       return this.error(c, '查詢獎品失敗')
+    }
+  }
+
+  // ★ 更新獎品資訊（只更新 Prize 本體）
+  async update(c: Context) {
+    try {
+      const { id } = c.req.param()
+      const body = await c.req.json()
+      const data = createPrizeSchema.parse(body)
+
+      const prize = await this.prisma.prize.update({
+        where: { id },
+        data: {
+          name: data.name,
+          description: data.description,
+          image: data.image,
+          isActive: data.isActive ?? true,
+        }
+      })
+      return this.success(c, prize)
+    } catch (error) {
+      return this.error(c, '更新獎品失敗', 500)
     }
   }
 }
