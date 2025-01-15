@@ -3,11 +3,13 @@ import { BaseController } from './base.controller'
 import { AdminAuth } from '@/decorators/adminAuth.decorator'
 import { DrawSetService } from '@/services/drawSet.service'
 import { DrawSetPrizeService } from '@/services/drawSetPrize.service'
+import { PrizeService } from '@/services/prize.service'
 
 export class DrawSetController extends BaseController {
   constructor(
     private readonly drawSetService: DrawSetService = new DrawSetService(),
-    private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService()
+    private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService(),
+    private readonly prizeService: PrizeService = new PrizeService()
   ) {
     super(drawSetService)
   }
@@ -86,6 +88,20 @@ export class DrawSetController extends BaseController {
         return drawSet
       },
       '刪除抽獎套組失敗'
+    )
+  }
+
+  @AdminAuth()
+  async getPrizesByDrawSetId(c: Context) {
+    return this.handleRequest(
+      c,
+      async () => {
+        const { id } = c.req.param()
+        const prizes = await this.drawSetPrizeService.findByDrawSetId(id)
+        if (!prizes) throw new Error('找不到對應的獎品')
+        return prizes
+      },
+      '取得抽獎套組的獎品失敗'
     )
   }
 }
