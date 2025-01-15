@@ -14,98 +14,69 @@ export class PrizeController extends BaseController {
   ) {
     super(prizeService)
   }
-  // 1) 建立獎品 (純 Prize)
+
   @AdminAuth()
   async create(c: Context) {
-    try {
+    return this.handleRequest(c, async () => {
       const body = await c.req.json()
       const data = createPrizeSchema.parse(body)
-
-      const prize = await this.prizeService.create({
-          name: data.name,
-          description: data.description,
-          image: data.image,
-          isActive: data.isActive ?? true,
+      return this.prizeService.create({
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        isActive: data.isActive ?? true,
       })
-      return this.success(c, prize)
-    } catch (error) {
-      return this.error(c, '建立獎品失敗', 500)
-    }
+    }, '建立獎品失敗')
   }
-   // ★ 依抽獎套組 ID 取得所有獎品 (由中繼表 DrawSetPrize 查詢)
-   async getByDrawSet(c: Context) {
-    try {
+
+  async getByDrawSet(c: Context) {
+    return this.handleRequest(c, async () => {
       const { drawSetId } = c.req.param()
       const drawSet = await this.drawSetService.findById(drawSetId)
-      if (!drawSet) {
-        return this.error(c, '找不到抽獎套組', 404)
-      }
-
-      const pivots = await this.drawSetPrizeService.findByDrawSetId(drawSetId)
-      return this.success(c, pivots)
-    } catch (error) {
-      return this.error(c, '取得獎品列表失敗', 500)
-    }
+      if (!drawSet) throw new Error('找不到抽獎套組')
+      return this.drawSetPrizeService.findByDrawSetId(drawSetId)
+    }, '取得獎品列表失敗')
   }
 
-  // ★ 刪除獎品：先刪除中繼，再考慮是否要刪除 Prize
   @AdminAuth()
   async delete(c: Context) {
-    try {
+    return this.handleRequest(c, async () => {
       const { id } = c.req.param()
-
-      // 查找目標中繼
       const pivots = await this.drawSetPrizeService.findByPrizeId(id)
-      if (!pivots.length) {
-        return this.error(c, '找不到中繼關係', 404)
-      }
-      // 檢查所有相關套組是否已開始
+      if (!pivots.length) throw new Error('找不到中繼關係')
+
       for (const pivot of pivots) {
         if (pivot.DrawSet.startTime <= new Date()) {
-          return this.error(c, '抽獎套組已開始，無法刪除此獎品', 400)
+          throw new Error('抽獎套組已開始，無法刪除此獎品')
         }
       }
 
-      // 刪除所有中繼表記錄
       await Promise.all(pivots.map(pivot => this.drawSetPrizeService.remove(pivot.id)))
-
-      return this.success(c, { message: '獎品刪除成功' })
-    } catch (error) {
-      return this.error(c, '刪除獎品失敗', 500)
-    }
+      return { message: '獎品刪除成功' }
+    }, '刪除獎品失敗')
   }
 
-  // ★ 取得單一獎品資訊（先找 Prize 本體，可再找關聯的中繼）
   async getById(c: Context) {
-    try {
+    return this.handleRequest(c, async () => {
       const { id } = c.req.param()
       const prize = await this.prizeService.findById(id)
-      if (!prize) {
-        return this.error(c, '找不到對應的獎品', 404)
-      }
-      return this.success(c, prize)
-    } catch (error) {
-      return this.error(c, '查詢獎品失敗')
-    }
+      if (!prize) throw new Error('找不到對應的獎品')
+      return prize
+    }, '查詢獎品失敗')
   }
 
-  // ★ 更新獎品資訊（只更新 Prize 本體）
   @AdminAuth()
   async update(c: Context) {
-    try {
+    return this.handleRequest(c, async () => {
       const { id } = c.req.param()
       const body = await c.req.json()
       const data = createPrizeSchema.parse(body)
-
-      const prize = await this.prizeService.update(id ,{
-          name: data.name,
-          description: data.description,
-          image: data.image,
-          isActive: data.isActive ?? true,
+      return this.prizeService.update(id, {
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        isActive: data.isActive ?? true,
       })
-      return this.success(c, prize)
-    } catch (error) {
-      return this.error(c, '更新獎品失敗', 500)
-    }
+    }, '更新獎品失敗')
   }
 }

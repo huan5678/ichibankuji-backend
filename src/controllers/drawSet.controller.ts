@@ -1,8 +1,8 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
 import { AdminAuth } from '@/decorators/adminAuth.decorator'
-import { DrawSetService } from '@/services/drawSet.service';
-import { DrawSetPrizeService } from '@/services/drawSetPrize.service';
+import { DrawSetService } from '@/services/drawSet.service'
+import { DrawSetPrizeService } from '@/services/drawSetPrize.service'
 
 export class DrawSetController extends BaseController {
   constructor(
@@ -11,89 +11,81 @@ export class DrawSetController extends BaseController {
   ) {
     super(drawSetService)
   }
+
   async getAll(c: Context) {
-    try {
-      const drawSets = await this.drawSetService.findAll()
-      return this.success(c, drawSets)
-    } catch (error) {
-      return this.error(c, '取得抽獎套組失敗')
-    }
+    return this.handleRequest(
+      c,
+      () => this.drawSetService.findAll(),
+      '取得抽獎套組失敗'
+    )
   }
 
   @AdminAuth()
   async create(c: Context) {
-    try {
-      const { name, description, price, maxDraws, startTime, endTime } = await c.req.json()
-      
-      const drawSet = await this.drawSetService.create({
-        name,
-        description,
-        price,
-        maxDraws,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime)
-      })
-
-      return this.success(c, drawSet)
-    } catch (error) {
-      return this.error(c, '建立抽獎套組失敗')
-    }
-  }
-
-  async getById(c: Context) {
-    try {
-      const { id } = c.req.param()
-      const drawSet = await this.drawSetService.findById(id)
-      return this.success(c, drawSet)
-    } catch (error) {
-      return this.error(c, '取得抽獎套組失敗')
-    }
-  }
-
-  @AdminAuth()
-  async update(c: Context) {
-    try {
-      const { id } = c.req.param()
-      const { name, description, price, maxDraws, startTime, endTime } = await c.req.json()
-
-      const drawSet = await this.drawSetService.update(id, {
+    return this.handleRequest(
+      c,
+      async () => {
+        const { name, description, price, maxDraws, startTime, endTime } = await c.req.json()
+        return this.drawSetService.create({
           name,
           description,
           price,
           maxDraws,
           startTime: new Date(startTime),
           endTime: new Date(endTime)
-        }
-      )
+        })
+      },
+      '建立抽獎套組失敗'
+    )
+  }
 
-      return this.success(c, drawSet)
-    } catch (error) {
-      return this.error(c, '更新抽獎套組失敗')
-    }
+  async getById(c: Context) {
+    return this.handleRequest(
+      c,
+      async () => {
+        const { id } = c.req.param()
+        return this.drawSetService.findById(id)
+      },
+      '取得抽獎套組失敗'
+    )
+  }
+
+  @AdminAuth()
+  async update(c: Context) {
+    return this.handleRequest(
+      c,
+      async () => {
+        const { id } = c.req.param()
+        const { name, description, price, maxDraws, startTime, endTime } = await c.req.json()
+        return this.drawSetService.update(id, {
+          name,
+          description,
+          price,
+          maxDraws,
+          startTime: new Date(startTime),
+          endTime: new Date(endTime)
+        })
+      },
+      '更新抽獎套組失敗'
+    )
   }
 
   @AdminAuth()
   async delete(c: Context) {
-    try {
-      const { id } = c.req.param()
-      console.log('Delete ID:', id) // 增加除錯日誌
-      const drawSet = await this.drawSetService.findById(id)
-      if (!drawSet) {
-        return this.error(c, '找不到抽獎套組', 404)
-      }
-
-      try {
+    return this.handleRequest(
+      c,
+      async () => {
+        const { id } = c.req.param()
+        const drawSet = await this.drawSetService.findById(id)
+        if (!drawSet) {
+          throw new Error('找不到抽獎套組')
+        }
+        
         await this.drawSetPrizeService.deleteByDrawSetId(id)
-      } catch (error) {
-        return this.error(c, '刪除抽獎套組失敗', 400)
-      }
-
-      await this.drawSetService.delete(id)
-
-      return this.success(c, drawSet)
-    } catch (error) {
-      console.error('Delete error:', error) // 增加除錯日誌
-      return this.error(c, '刪除抽獎套組失敗', 400)
-    }
+        await this.drawSetService.delete(id)
+        return drawSet
+      },
+      '刪除抽獎套組失敗'
+    )
   }
 }
