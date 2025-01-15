@@ -13,8 +13,6 @@ export class PrizeController extends BaseController {
     private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService()
   ) {
     super(prizeService)
-    super(drawSetService)
-    super(drawSetPrizeService)
   }
   // 1) 建立獎品 (純 Prize)
   @AdminAuth()

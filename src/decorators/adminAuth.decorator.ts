@@ -1,5 +1,5 @@
-import { Context } from 'hono'
-import { adminAuth } from '@/middlewares/adminAuth'
+import { Context, Next } from 'hono'
+import { adminAuth, checkAdminRole } from '@/middlewares/adminAuth'
 
 export function AdminAuth() {
   return function (
@@ -9,11 +9,23 @@ export function AdminAuth() {
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = async function (c: Context, ...args: any[]) {
-      const authResult = await adminAuth(c)
-      if (authResult) return authResult
-      
-      return originalMethod.apply(this, [c, ...args])
+    descriptor.value = async function (c: Context, next: Next, ...args: any[]) {
+      try {
+        // 在測試環境中模擬headers
+        if (process.env.NODE_ENV === 'development') {
+          c.req.raw.headers.set('Authorization', 'Bearer test-token');
+        }
+        
+        await adminAuth(c, next);
+        await checkAdminRole(c, next);
+        
+        return originalMethod.apply(this, [c, next, ...args]);
+      } catch (error) {
+        return c.json({
+          success: false,
+          error: '未授權的訪問'
+        }, 401);
+      }
     }
 
     return descriptor

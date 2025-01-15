@@ -12,8 +12,6 @@ export class DrawSetPrizeController extends BaseController {
     private readonly prizeService: PrizeService = new PrizeService(),
     private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService()
   ) {
-    super(drawSetService)
-    super(prizeService)
     super(drawSetPrizeService)
   }
   // ★ 將已存在的 Prize 加進指定抽獎套組

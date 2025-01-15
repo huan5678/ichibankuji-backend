@@ -10,7 +10,6 @@ export class DrawSetController extends BaseController {
     private readonly drawSetPrizeService: DrawSetPrizeService = new DrawSetPrizeService()
   ) {
     super(drawSetService)
-    super(drawSetPrizeService)
   }
   async getAll(c: Context) {
     try {
@@ -77,17 +76,24 @@ export class DrawSetController extends BaseController {
   async delete(c: Context) {
     try {
       const { id } = c.req.param()
+      console.log('Delete ID:', id) // 增加除錯日誌
       const drawSet = await this.drawSetService.findById(id)
       if (!drawSet) {
         return this.error(c, '找不到抽獎套組', 404)
       }
 
-      await this.drawSetPrizeService.deleteByDrawSetId(id)
+      try {
+        await this.drawSetPrizeService.deleteByDrawSetId(id)
+      } catch (error) {
+        return this.error(c, '刪除抽獎套組失敗', 400)
+      }
+
       await this.drawSetService.delete(id)
 
       return this.success(c, drawSet)
     } catch (error) {
-      return this.error(c, '刪除抽獎套組失敗')
+      console.error('Delete error:', error) // 增加除錯日誌
+      return this.error(c, '刪除抽獎套組失敗', 400)
     }
   }
 }

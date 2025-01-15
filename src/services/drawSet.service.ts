@@ -30,7 +30,7 @@ export class DrawSetService extends BaseService {
     })
   }
 
-  async findById(id: string): Promise<DrawSet> {
+  async findById(id: string): Promise<DrawSet | null> {
     const drawSet = await this.prisma.drawSet.findUnique({
       where: { id },
       include: {
@@ -43,7 +43,7 @@ export class DrawSetService extends BaseService {
     })
 
     if (!drawSet) {
-      throw new Error('找不到抽獎套組')
+      return null;
     }
 
     return drawSet
