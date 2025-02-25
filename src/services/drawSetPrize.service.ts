@@ -17,7 +17,7 @@ export class DrawSetPrizeService extends BaseService {
       throw new Error('找不到抽獎套組')
     }
 
-    if (drawSet.startTime <= new Date()) {
+    if (drawSet.startTime && drawSet.startTime <= new Date()) {
       throw new Error('抽獎已開始，無法修改獎品')
     }
 
@@ -59,7 +59,7 @@ export class DrawSetPrizeService extends BaseService {
       throw new Error('找不到抽獎套組')
     }
 
-    if (drawSet.startTime <= new Date()) {
+    if (drawSet.startTime && drawSet.startTime <= new Date()) {
       throw new Error('抽獎已開始，無法修改獎品')
     }
 
@@ -145,7 +145,7 @@ export class DrawSetPrizeService extends BaseService {
       throw new Error('找不到獎品關係')
     }
 
-    if (existing.DrawSet.startTime <= new Date()) {
+    if (existing.DrawSet.startTime && existing.DrawSet.startTime <= new Date()) {
       throw new Error('抽獎已開始，無法修改稀有度')
     }
 
@@ -169,7 +169,7 @@ export class DrawSetPrizeService extends BaseService {
       throw new Error('找不到獎品關係')
     }
 
-    if (existing.DrawSet.startTime <= new Date()) {
+    if (existing.DrawSet.startTime && existing.DrawSet.startTime <= new Date()) {
       throw new Error('抽獎已開始，無法移除獎品')
     }
 

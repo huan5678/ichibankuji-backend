@@ -46,7 +46,7 @@ export class PrizeController extends BaseController {
       if (!pivots.length) throw new Error('找不到中繼關係')
 
       for (const pivot of pivots) {
-        if (pivot.DrawSet.startTime <= new Date()) {
+        if (pivot.DrawSet.startTime && pivot.DrawSet.startTime <= new Date()) {
           throw new Error('抽獎套組已開始，無法刪除此獎品')
         }
       }

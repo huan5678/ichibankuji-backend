@@ -31,8 +31,8 @@ model DrawSet {
   name          String           @db.VarChar(50) // 套組名稱
   description   String?          @db.VarChar(250) // 套組描述
   image         String?          // 套組圖片網址
-  startTime     DateTime         // 開始時間
-  endTime       DateTime         // 結束時間
+  startTime     DateTime?         // 開始時間
+  endTime       DateTime?         // 結束時間
   enabled       Boolean          @default(true)  // 套組狀態
   maxDraws      Int              // 最大抽獎次數
   price         Int              // 抽獎價格（點數）

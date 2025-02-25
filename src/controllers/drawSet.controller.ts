@@ -45,7 +45,7 @@ export class DrawSetController extends BaseController {
     return this.handleRequest(
       c,
       async () => {
-        const { id } = c.req.param()
+        const id = c.req.param('id')
         return this.drawSetService.findById(id)
       },
       '取得抽獎套組失敗'
@@ -57,7 +57,7 @@ export class DrawSetController extends BaseController {
     return this.handleRequest(
       c,
       async () => {
-        const { id } = c.req.param()
+        const id = c.req.param('id')
         const { name, description, price, maxDraws, startTime, endTime } = await c.req.json()
         return this.drawSetService.update(id, {
           name,
@@ -77,7 +77,7 @@ export class DrawSetController extends BaseController {
     return this.handleRequest(
       c,
       async () => {
-        const { id } = c.req.param()
+        const id = c.req.param('id')
         const drawSet = await this.drawSetService.findById(id)
         if (!drawSet) {
           throw new Error('找不到抽獎套組')
@@ -96,7 +96,7 @@ export class DrawSetController extends BaseController {
     return this.handleRequest(
       c,
       async () => {
-        const { id } = c.req.param()
+        const id = c.req.param('id')
         const prizes = await this.drawSetPrizeService.findByDrawSetId(id)
         if (!prizes) throw new Error('找不到對應的獎品')
         return prizes

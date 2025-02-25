@@ -48,7 +48,7 @@ export class DrawSetPrizeController extends BaseController {
       const existingPivot = await this.drawSetService.findById(id)
       if (!existingPivot) throw new Error('找不到對應的獎品關係')
 
-      if (existingPivot.startTime <= new Date()) {
+      if (existingPivot.startTime && existingPivot.startTime <= new Date()) {
         throw new Error('抽獎套組已開始，無法修改稀有度')
       }
 
@@ -63,7 +63,7 @@ export class DrawSetPrizeController extends BaseController {
       const existingPivot = await this.drawSetService.findById(drawSetId)
       if (!existingPivot) throw new Error('找不到對應的獎品關係')
 
-      if (existingPivot.startTime <= new Date()) {
+      if (existingPivot.startTime && existingPivot.startTime <= new Date()) {
         throw new Error('抽獎套組已開始，無法移除獎品')
       }
 

@@ -6,8 +6,8 @@ export class DrawSetService extends BaseService {
     return this.prisma.drawSet.create({
       data: {
         ...data,
-        startTime: new Date(data.startTime),
-        endTime: new Date(data.endTime)
+        startTime: data.startTime ? new Date(data.startTime) : new Date(),
+        endTime: data.endTime ? new Date(data.endTime) : new Date()
       },
       include: {
         DrawSetPrizes: {
