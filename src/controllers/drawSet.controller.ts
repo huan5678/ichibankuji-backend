@@ -1,9 +1,7 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
 import { AdminAuth } from '@/decorators/adminAuth.decorator'
-import { DrawSetService } from '@/services/drawSet.service'
-import { DrawSetPrizeService } from '@/services/drawSetPrize.service'
-import { PrizeService } from '@/services/prize.service'
+import { DrawSetService, DrawSetPrizeService, PrizeService } from '@/services'
 
 export class DrawSetController extends BaseController {
   constructor(

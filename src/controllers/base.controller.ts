@@ -1,6 +1,6 @@
 import { Context } from 'hono'
 import { ContentfulStatusCode } from 'hono/utils/http-status'
-import { BaseService } from '@/services/base.service'
+import { BaseService } from '@/services'
 import { PaginatedResult, PaginationParams } from '@/types'
 
 export abstract class BaseController {

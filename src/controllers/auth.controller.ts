@@ -1,6 +1,6 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
-import { AuthService } from '@/services/auth.service'
+import { AuthService } from '@/services'
 
 export class AuthController extends BaseController {
   constructor(private readonly authService: AuthService = new AuthService()) {

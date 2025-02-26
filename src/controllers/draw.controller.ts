@@ -1,7 +1,7 @@
 import { Context } from 'hono'
 import { BaseController } from './base.controller'
 import { executeDrawSchema } from '@/schemas/draw.schema'
-import { DrawRecordService } from '@/services/drawRecord.service'
+import { DrawRecordService } from '@/services'
 
 export class DrawController extends BaseController {
   constructor(private readonly drawRecordService: DrawRecordService = new DrawRecordService()) {

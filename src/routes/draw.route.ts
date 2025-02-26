@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { DrawController } from '@/controllers/draw.controller'
+import { DrawController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
 import { executeDrawSchema } from '@/schemas/draw.schema'
 

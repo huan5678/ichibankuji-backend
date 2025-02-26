@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { AuthController } from '@/controllers/auth.controller'
+import { AuthController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
 import { 
   adminUserUpdateSchema, 

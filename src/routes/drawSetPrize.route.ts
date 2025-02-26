@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { DrawSetPrizeController } from '@/controllers/drawSetPrize.controller'
+import { DrawSetPrizeController } from '@/controllers'
 
 const router = new Hono()
 const controller = new DrawSetPrizeController()

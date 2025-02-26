@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { PrizeController } from '@/controllers/prize.controller'
+import { PrizeController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
 import { createPrizeSchema } from '@/schemas/prize.schema'
 
