@@ -1,6 +1,7 @@
 import { Context } from 'hono'
 import { ContentfulStatusCode } from 'hono/utils/http-status'
 import { BaseService } from '@/services/base.service'
+import { PaginatedResult, PaginationParams } from '@/types'
 
 export abstract class BaseController {
   constructor(protected readonly service: BaseService) {}
@@ -25,6 +26,31 @@ export abstract class BaseController {
       console.error(error)
       const errorMessageToUse = error instanceof Error ? error.message : errorMessage
       return this.error(ctx, errorMessageToUse)
+    }
+  }
+
+  /**
+   * 從請求中提取分頁參數
+   */
+  protected getPaginationParams(ctx: Context): PaginationParams {
+    return {
+      page: ctx.req.query('page') ? parseInt(ctx.req.query('page') || '1', 10) : 1,
+      limit: ctx.req.query('limit') ? parseInt(ctx.req.query('limit') || '10', 10) : 10
+    }
+  }
+
+  /**
+   * 創建分頁結果
+   */
+  protected createPaginatedResult<T>(data: T[], total: number, { page, limit }: PaginationParams): PaginatedResult<T> {
+    return {
+      data,
+      pagination: {
+        total,
+        page: page || 1,
+        limit: limit || 10,
+        totalPages: Math.ceil(total / (limit || 10))
+      }
     }
   }
 }
