@@ -1,4 +1,4 @@
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 import { jwtAuth, checkAdminRole } from "@/middlewares/adminAuth";
 import type { ErrorType } from "@/controllers/base.controller";
 import { logger } from "@/utils/logger";
@@ -9,16 +9,23 @@ const ERROR_TYPES = {
 	UNAUTHORIZED: "unauthorized",
 };
 
+// 定義裝飾器目標類型
+type DecoratorTarget = Record<string, unknown>;
+
 // 管理員權限裝飾器
 export function AdminAuth() {
-	return function (
-		target: any,
+	return (
+		target: DecoratorTarget,
 		propertyKey: string,
 		descriptor: PropertyDescriptor,
-	) {
+	) => {
 		const originalMethod = descriptor.value;
 
-		descriptor.value = async function (c: Context, next: Next, ...args: any[]) {
+		descriptor.value = async function (
+			c: Context,
+			next: Next,
+			...args: unknown[]
+		) {
 			try {
 				// 在測試環境中模擬headers
 				if (
@@ -54,14 +61,18 @@ export function AdminAuth() {
 
 // 用戶權限裝飾器 (只需要登入)
 export function UserAuth() {
-	return function (
-		target: any,
+	return (
+		target: DecoratorTarget,
 		propertyKey: string,
 		descriptor: PropertyDescriptor,
-	) {
+	) => {
 		const originalMethod = descriptor.value;
 
-		descriptor.value = async function (c: Context, next: Next, ...args: any[]) {
+		descriptor.value = async function (
+			c: Context,
+			next: Next,
+			...args: unknown[]
+		) {
 			try {
 				// 在測試環境中模擬headers
 				if (
@@ -93,11 +104,11 @@ export function UserAuth() {
 }
 
 /**
- * 管理員認證裝飾器
+ * 管理員認證中間件
  * 用於檢查請求是否來自管理員用戶
  */
 export function adminAuth() {
-	return async (c: Context, next: Next): Promise<Response | void> => {
+	return async (c: Context, next: Next) => {
 		try {
 			// 從 JWT 中獲取用戶資訊
 			const payload = c.get("jwtPayload");
@@ -116,7 +127,8 @@ export function adminAuth() {
 			}
 
 			// 管理員權限驗證通過，繼續執行
-			return next();
+			await next();
+			return;
 		} catch (error: unknown) {
 			logger.error("管理員驗證失敗", error);
 			return c.json(
