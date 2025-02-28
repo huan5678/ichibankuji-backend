@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { PrizeController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
-import { createPrizeSchema } from '@/schemas/prize.schema'
+import { createPrizeSchema } from "@/schemas";
 
 const PrizeRoute = new Hono()
 const controller = new PrizeController()

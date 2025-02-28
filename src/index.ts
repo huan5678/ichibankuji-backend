@@ -1,17 +1,18 @@
 import 'module-alias/register'
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { logger } from 'hono/logger'
+import { logger as honoLogger } from "hono/logger";
 import { cors } from 'hono/cors'
 import { jwt } from 'hono/jwt'
 import { secureHeaders } from 'hono/secure-headers'
-import { prettyJSON } from 'hono/pretty-json'
-import { rateLimiter } from 'hono/rate-limiter'
+import { prettyJSON } from "hono/pretty-json";
 import { PrismaClient } from '@prisma/client'
 import router from '@/routes'
+import { swaggerUI } from "@hono/swagger-ui";
+import { logger } from "@/utils/logger";
 
 // 載入環境變數
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3001;
 const HOST = process.env.HOST || 'localhost'
 const JWT_SECRET = process.env.JWT_SECRET || 'secret'
 const NODE_ENV = process.env.NODE_ENV || 'development'
@@ -21,6 +22,9 @@ export const prisma = new PrismaClient()
 
 // 建立 Hono 應用程式
 const app = new Hono()
+
+// 設置 Swagger UI
+app.get("/swagger", swaggerUI({ url: "/api/docs.json" }));
 
 // 處理 CORS
 app.use(
@@ -38,49 +42,43 @@ app.use(
 // 安全標頭
 app.use('*', secureHeaders())
 
-// 速率限制 (限制每個 IP 每分鐘 100 個請求)
-app.use('*', rateLimiter({
-  limit: 100,
-  windowInSeconds: 60,
-}))
-
 // 美化 JSON 輸出 (僅在開發環境)
 if (NODE_ENV === 'development') {
   app.use('*', prettyJSON())
 }
 
 // 日誌中間件
-app.use('*', logger())
+app.use("*", honoLogger());
 
 // JWT 認證（除了登入和註冊外的路由都需要驗證）
 app.use('/api/*', async (c, next) => {
   // 略過不需要驗證的路由
-  const path = c.req.path
-  if (
-    path.includes('/api/auth/login') || 
-    path.includes('/api/auth/register') ||
-    path.includes('/api/auth/forgot-password') ||
-    path.includes('/api/auth/reset-password') ||
-    path.includes('/api/health') ||
-    path === '/api/'
-  ) {
-    return next()
-  }
-  return jwt({ 
-    secret: JWT_SECRET 
-  })(c, next)
+		const path = c.req.path;
+		if (
+			path.includes("/api/auth/login") ||
+			path.includes("/api/auth/register") ||
+			path.includes("/api/auth/forgot-password") ||
+			path.includes("/api/auth/reset-password") ||
+			path.includes("/api/health") ||
+			path === "/api/"
+		) {
+			return next();
+		}
+		return jwt({
+			secret: JWT_SECRET,
+		})(c, next);
 })
 
 // 健康檢查端點
 app.get('/api/health', (c) => {
   const date = new Date().toLocaleString()
-  return c.json({ 
-    status: true,
-    message: 'OK',
-    uptime: process.uptime(),
-    timestamp: date,
-    host: c.req.url
-  })
+  return c.json({
+			status: true,
+			message: "OK",
+			uptime: process.uptime(),
+			timestamp: date,
+			host: c.req.url,
+		});
 })
 
 // 註冊所有路由
@@ -88,19 +86,25 @@ app.route('/api', router)
 
 // 處理 404 錯誤
 app.notFound((c) => {
-  return c.json({ 
-    success: false, 
-    error: '找不到該資源' 
-  }, 404)
+  return c.json(
+			{
+				success: false,
+				error: "找不到該資源",
+			},
+			404,
+		);
 })
 
 // 處理伺服器錯誤
 app.onError((err, c) => {
   console.error(`[ERROR] ${c.req.method} ${c.req.path}:`, err)
-  return c.json({ 
-    success: false, 
-    error: NODE_ENV === 'production' ? '伺服器錯誤' : err.message 
-  }, 500)
+  return c.json(
+			{
+				success: false,
+				error: NODE_ENV === "production" ? "伺服器錯誤" : err.message,
+			},
+			500,
+		);
 })
 
 // 啟動伺服器
@@ -109,6 +113,7 @@ serve({
   port: PORT,
 }, (info) => {
   console.log(`伺服器已啟動於 http://${HOST}:${info.port}`)
+  console.log(`Swagger UI 可在 http://${HOST}:${info.port}/swagger 查看`);
 })
 
 // 優雅關閉

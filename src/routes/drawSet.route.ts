@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { DrawSetController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
-import { createDrawSetSchema } from '@/schemas/drawSet.schema'
+import { createDrawSetSchema } from "@/schemas";
 
 const DrawSetRoute = new Hono()
 const controller = new DrawSetController()

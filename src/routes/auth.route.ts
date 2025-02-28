@@ -1,14 +1,14 @@
 import { Hono } from 'hono'
 import { AuthController } from '@/controllers'
 import { validate } from '@/middlewares/validate'
-import { 
-  adminUserUpdateSchema, 
-  forgotPasswordSchema, 
-  loginSchema, 
-  registerSchema, 
-  resetPasswordSchema,
-  updateProfileSchema 
-} from '@/schemas/auth.schema'
+import {
+	adminUserUpdateSchema,
+	forgotPasswordSchema,
+	loginSchema,
+	registerSchema,
+	resetPasswordSchema,
+	updateProfileSchema,
+} from "@/schemas";
 import { adminAuth, userAuth } from '@/middlewares/adminAuth'
 
 const AuthRoute = new Hono()

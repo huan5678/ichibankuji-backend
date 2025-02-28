@@ -1,6 +1,6 @@
-import { Context } from 'hono'
+import type { Context } from "hono";
 import { BaseController } from './base.controller'
-import { createPrizeSchema } from '@/schemas/prize.schema'
+import { createPrizeSchema } from "@/schemas";
 import { AdminAuth } from '@/decorators/adminAuth.decorator'
 import { PrizeService, DrawSetService, DrawSetPrizeService } from '@/services'
 

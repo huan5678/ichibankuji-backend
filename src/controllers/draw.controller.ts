@@ -1,6 +1,6 @@
-import { Context } from 'hono'
+import type { Context } from "hono";
 import { BaseController } from './base.controller'
-import { executeDrawSchema } from '@/schemas/draw.schema'
+import { executeDrawSchema } from "@/schemas";
 import { DrawRecordService } from '@/services'
 
 export class DrawController extends BaseController {
@@ -12,12 +12,12 @@ export class DrawController extends BaseController {
     return this.handleRequest(c, async () => {
       const { drawSetId, number } = executeDrawSchema.parse(await c.req.json())
       const jwt = c.get('jwtPayload')
-      
+
       if (number === undefined) {
         throw new Error('Number is required')
       }
       const result = await this.drawRecordService.execute(jwt.id, drawSetId, number)
-      
+
       return {
         drawNumber: result.drawNumber,
         prize: result.Prize,

@@ -1,4 +1,4 @@
-import { Context } from "hono";
+import type { Context } from "hono";
 
 export interface UserPayload {
   id: string;
@@ -69,16 +69,22 @@ export interface AuthResult {
 }
 
 export interface PaginationParams {
-  page?: number
-  limit?: number
-}
+		page?: number;
+		limit?: number;
+		sortBy?: string;
+		sortOrder?: "asc" | "desc";
+	}
 
 export interface PaginatedResult<T> {
-  data: T[]
-  pagination: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-  }
-}
+		data: T[];
+		pagination: {
+			total: number;
+			page: number;
+			limit: number;
+			totalPages: number;
+			hasNextPage: boolean;
+			hasPrevPage: boolean;
+		};
+	}
+
+export * from "./swagger";
